@@ -13,7 +13,7 @@ using namespace std;
 void findAllImplicants(string input, int index, vector<string>& implicants);
 
 //將Implicant轉成minterm
-vector<int> implicantToMinterms(string implicant);
+set<int> implicantToMinterms(string implicant);
 
 //依照1的數量做排序
 void sortBy1Num(vector<string>& implicants);
@@ -23,6 +23,12 @@ void reduceImplicants(vector<string>& implicants);
 
 //找到Essential Prime Implicant
 vector<string> findEssentialPI(vector<string> implicents, vector<string> dontCares);
+
+//Patrick method
+vector<string> patrick(vector<string> notEssentialPI);
+
+//組合 C n取m
+void comb(int n, int m, int i, vector<string> list, vector<vector<string>>& result);
 
 int main(int argc, char* argv[])
 {
@@ -39,7 +45,7 @@ int main(int argc, char* argv[])
 
 	fstream input(inputFileName);
 	vector<string> implicants, essentialPI, dontCares;
-	unordered_map<string, vector<int>> implicantMintermPair, dontCaresMintermPair;
+	unordered_map<string, set<int>> implicantMintermPair, dontCaresMintermPair;
 	vector<string> inputVar, outputVar;
 	int inputNum = 0, outputNum = 0, productNum = 0;
 	// read file and trasfer to obdd
@@ -83,11 +89,9 @@ int main(int argc, char* argv[])
 				input >> buf;
 				input >> result;
 				findAllImplicants(buf, 0, implicants);
-				// implicantMintermPair[buf] = implicantToMinterms(buf);
 				if (result == '-')
 				{
 					findAllImplicants(buf, 0, dontCares);
-					dontCaresMintermPair[buf] = implicantToMinterms(buf);
 				}
 			}
 		}
@@ -104,6 +108,23 @@ int main(int argc, char* argv[])
 	sortBy1Num(implicants);
 	reduceImplicants(implicants);
 	essentialPI = findEssentialPI(implicants, dontCares);
+
+	// Petrick's method
+		//去除essential PI
+	for (int i=0;i<implicants.size();i++)
+	{
+		for (string epi : essentialPI)
+		{
+			if (epi == implicants[i])
+			{
+				implicants.erase(implicants.begin() + i);
+				break;
+			}
+		}
+	}
+		
+
+
 
 	for (string imp : implicants)
 	{
@@ -141,10 +162,10 @@ void findAllImplicants(string input, int index, vector<string>& implicants)
 	}
 }
 
-vector<int> implicantToMinterms(string implicant)
+set<int> implicantToMinterms(string implicant)
 {
 	vector<string> allImplicants;
-	vector<int> minterms;
+	set<int> minterms;
 
 	findAllImplicants(implicant, 0, allImplicants);
 
@@ -158,21 +179,9 @@ vector<int> implicantToMinterms(string implicant)
 				minterm += pow(2, j);
 			}
 		}
-		minterms.push_back(minterm);
+		minterms.insert(minterm);
 	}
 
-	for (int i = 0; i < minterms.size() - 1; i++)
-	{
-		for (int j = 0; j < minterms.size() - 1; j++)
-		{
-			if (minterms[j] > minterms[j + 1])
-			{
-				int temp = minterms[j];
-				minterms[j] = minterms[j + 1];
-				minterms[j + 1] = temp;
-			}
-		}
-	}
 	return minterms;
 }
 
@@ -265,7 +274,7 @@ void reduceImplicants(vector<string>& implicants)
 vector<string> findEssentialPI(vector<string> implicents, vector<string> dontCares)
 {
 	vector<string> essentialPI;
-	unordered_map<string, vector<int>> implicantMintermPair, dontCaresMintermPair;
+	unordered_map<string, set<int>> implicantMintermPair, dontCaresMintermPair;
 	set<int> allMinterms;
 	for (string imp : implicents)
 	{
@@ -316,4 +325,17 @@ vector<string> findEssentialPI(vector<string> implicents, vector<string> dontCar
 		}
 	}
 	return essentialPI;
+}
+
+vector<string> patrick(vector<string> notEssentialPI)
+{
+
+}
+
+void comb(int n, int m, int i, vector<string> list,vector<vector<string>> &result)
+{
+	for (int j = i; j < list.size() - m + 1;j++)
+	{
+	
+	}
 }
